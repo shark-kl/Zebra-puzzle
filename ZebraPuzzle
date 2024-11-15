@@ -1,87 +1,39 @@
+# pip install python-constraint
+
 from constraint import Problem, AllDifferentConstraint
-
-# Setup the problem
 problem = Problem()
-
-# Variables for each attribute (House, Nationality, Instrument, Music Type, Drink)
 houses = range(1, 6)
-
-nationalities = ["American", "French", "Canadian", "Spanish", "British"]
-instruments = ["guitar", "piano", "drums", "violin", "flute"]
-music_types = ["classical", "rock", "jazz", "folk", "pop"]
-drinks = ["coffee", "tea", "milk", "water", "juice"]
-
-# Add variables to the problem
-problem.addVariables(nationalities, houses)
-problem.addVariables(instruments, houses)
-problem.addVariables(music_types, houses)
-problem.addVariables(drinks, houses)
-
-# All house attributes must be different
-problem.addConstraint(AllDifferentConstraint(), nationalities)
-problem.addConstraint(AllDifferentConstraint(), instruments)
-problem.addConstraint(AllDifferentConstraint(), music_types)
-problem.addConstraint(AllDifferentConstraint(), drinks)
-
-# Adding the clues as constraints
-
-# 1. The American plays the guitar.
-problem.addConstraint(lambda a, g: a == g, ("American", "guitar"))
-
-# 2. The person who prefers classical music drinks coffee.
-problem.addConstraint(lambda c, k: c == k, ("classical", "coffee"))
-
-# 3. The French musician prefers rock music.
-problem.addConstraint(lambda f, r: f == r, ("French", "rock"))
-
-# 4. The pianist lives next to the person who drinks tea.
-problem.addConstraint(lambda p, t: abs(p - t) == 1, ("piano", "tea"))
-
-# 5. The person who plays the drums prefers jazz music.
-problem.addConstraint(lambda d, j: d == j, ("drums", "jazz"))
-
-# 6. The Canadian lives in the middle house (house 3).
-problem.addConstraint(lambda c: c == 3, ("Canadian",))
-
-# 7. The Spanish musician drinks water.
-problem.addConstraint(lambda s, w: s == w, ("Spanish", "water"))
-
-# 8. The person who plays the violin prefers folk music.
-problem.addConstraint(lambda v, f: v == f, ("violin", "folk"))
-
-# 9. The British musician lives in the first house.
-problem.addConstraint(lambda b: b == 1, ("British",))
-
-# 10. The person who prefers pop music drinks juice.
-problem.addConstraint(lambda p, j: p == j, ("pop", "juice"))
-
-# 11. The person who drinks milk lives next to the person who plays the guitar.
-problem.addConstraint(lambda m, g: abs(m - g) == 1, ("milk", "guitar"))
-
-# Solve the problem and get one solution
-solution = problem.getSolution()
-
-# Output the result if a solution exists
-if solution:
-    # Create reverse lookup dictionaries
-    house_by_nationality = {v: k for k, v in solution.items() if k in nationalities}
-    house_by_instrument = {v: k for k, v in solution.items() if k in instruments}
-    house_by_music_type = {v: k for k, v in solution.items() if k in music_types}
-    house_by_drink = {v: k for k, v in solution.items() if k in drinks}
-
-    print("Solution:")
-    for house in houses:
-        print(f"House {house}:")
-        print(f"  Nationality: {house_by_nationality[house]}")
-        print(f"  Instrument: {house_by_instrument[house]}")
-        print(f"  Music Type: {house_by_music_type[house]}")
-        print(f"  Drink: {house_by_drink[house]}")
-    
-    # Find out who drinks water and who plays the violin
-    violin_player = house_by_nationality[solution['violin']]  # Violin player
-    water_drinker = house_by_nationality[solution['water']]   # Water drinker
-    
-    print(f"\nThe violin player is: {violin_player}")
-    print(f"The person who drinks water is: {water_drinker}")
-else:
-    print("No solution found!")
+attributes = {
+    "colors": ["red", "green", "ivory", "yellow", "blue"],
+    "nationalities": ["Englishman", "Spaniard", "Ukrainian", "Norwegian", "Japanese"],
+    "pets": ["dog", "snails", "fox", "horse", "zebra"],
+    "drinks": ["coffee", "tea", "milk", "orange juice", "water"],
+    "cigarettes": ["Old Gold", "Kools", "Chesterfields", "Lucky Strike", "Parliaments"]
+}
+for attr in attributes.values():
+    problem.addVariables(attr, houses)
+    problem.addConstraint(AllDifferentConstraint(), attr)
+problem.addConstraint(lambda x, y: x == y, ["Englishman", "red"])
+problem.addConstraint(lambda x, y: x == y, ["Spaniard", "dog"])
+problem.addConstraint(lambda x, y: x == y, ["coffee", "green"])
+problem.addConstraint(lambda x, y: x == y, ["Ukrainian", "tea"])
+problem.addConstraint(lambda x, y: x == y + 1, ["green", "ivory"])
+problem.addConstraint(lambda x, y: x == y, ["Old Gold", "snails"])
+problem.addConstraint(lambda x, y: x == y, ["Kools", "yellow"])
+problem.addConstraint(lambda x: x == 3, ["milk"])
+problem.addConstraint(lambda x: x == 1, ["Norwegian"])
+problem.addConstraint(lambda x, y: abs(x - y) == 1, ["Chesterfields", "fox"])
+problem.addConstraint(lambda x, y: abs(x - y) == 1, ["Kools", "horse"])
+problem.addConstraint(lambda x, y: x == y, ["Lucky Strike", "orange juice"])
+problem.addConstraint(lambda x, y: x == y, ["Japanese", "Parliaments"])
+problem.addConstraint(lambda x, y: abs(x - y) == 1, ["Norwegian", "blue"])
+solution = problem.getSolutions()[0]
+for house in houses:
+    print(f"House {house}:", ", ".join(
+        f"{attr[:-1].capitalize()}: {next(item for item, h in solution.items() if h == house and item in attributes[attr])}"
+        for attr in attributes
+    ))
+zebra_owner = next(n for n in attributes["nationalities"] if solution[n] == solution["zebra"])
+water_drinker = next(n for n in attributes["nationalities"] if solution[n] == solution["water"])
+print(f"\nThe person who owns the zebra is the {zebra_owner}.")
+print(f"The person who drinks water is the {water_drinker}.")
